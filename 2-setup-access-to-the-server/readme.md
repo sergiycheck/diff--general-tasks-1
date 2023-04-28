@@ -77,3 +77,8 @@ To run a command as administrator (user "root"), use "sudo <command>".
 See "man sudo_root" for details.
 ubuntu@developed-chihuahua:~$ 
 ```
+
+### links
+
+https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
+
