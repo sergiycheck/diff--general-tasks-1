@@ -11,6 +11,7 @@ server.listen(port, () => {
 
 const clients = new Map<string, WebSocket>();
 const users = {};
+const editorContentArr = [];
 
 wss.on("connection", function connection(ws, req) {
   ws.on("error", console.error);
@@ -47,16 +48,17 @@ function handleMessage(message: RawData, userId: string) {
     content: string;
   };
 
+  console.log("Received new data from the client", dataFromClient);
+
   const json = { type: dataFromClient.type } as { type: string; data: any };
-  let editorContent = null;
 
   if (dataFromClient.type === typesDef.USER_EVENT) {
     users[userId] = dataFromClient;
     userActivity.push(`${dataFromClient.username} joined to edit the document`);
-    json.data = { users, userActivity };
+    json.data = { users, userActivity, editorContentArr };
   } else if (dataFromClient.type === typesDef.CONTENT_CHANGE) {
-    editorContent = dataFromClient.content;
-    json.data = { editorContent, userActivity };
+    editorContentArr.push(dataFromClient.content);
+    json.data = { editorContentArr, userActivity };
   }
 
   broadcastMessage(json);

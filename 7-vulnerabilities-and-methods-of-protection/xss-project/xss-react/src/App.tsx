@@ -1,12 +1,27 @@
 import React from "react";
-import { Box, Button, Flex, Image, Input, Link, Text } from "@chakra-ui/react";
-import { StyledModal } from "./components/modal";
+import { Box, Flex, Input, Text } from "@chakra-ui/react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
+import { XssComponent } from "./components/xss-component";
 
 const webSocketUrl = "ws://localhost:8000";
 
-function App() {
-  const webSocketData = useWebSocket(webSocketUrl, {
+const typesDef = {
+  USER_EVENT: "userevent",
+  CONTENT_CHANGE: "contentchange",
+};
+
+function isUserEvent(message: { data: any }) {
+  const evt = JSON.parse(message.data);
+  return evt.type === typesDef.USER_EVENT;
+}
+
+function isContentChangeEvent(message: { data: any }) {
+  const evt = JSON.parse(message.data);
+  return evt.type === typesDef.CONTENT_CHANGE;
+}
+
+export default function App() {
+  const { readyState, sendJsonMessage } = useWebSocket(webSocketUrl, {
     onOpen: () => {
       console.log("WebSocket connection established.");
     },
@@ -16,85 +31,126 @@ function App() {
     shouldReconnect: () => true,
   });
 
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState("");
+  React.useEffect(() => {
+    if (readyState === ReadyState.OPEN) {
+      sendJsonMessage({
+        username: `user-${Math.floor(Math.random() * 10)}`,
+        type: typesDef.USER_EVENT,
+      });
+    }
+  }, [readyState, sendJsonMessage]);
 
-  const [showDiffRenderedElements, setShowDiffRenderedElements] =
-    React.useState(false);
+  const [inputValue, setInputValue] = React.useState("");
 
   return (
     <Box>
-      <Flex gap={3} flexDir="column">
-        <Text fontSize="xl">Demonstration of xss</Text>
-        <Button
-          onClick={() => {
+      <Text>Enter message below</Text>
+      <Input
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            sendJsonMessage({
+              type: typesDef.CONTENT_CHANGE,
+              content: inputValue,
+            });
+
             setInputValue("");
-            setIsOpen((prev) => !prev);
-            setShowDiffRenderedElements(false);
-          }}
-        >
-          show modal
-        </Button>
-
-        <Link href="https://www.pexels.com/search/cat/" target="_blank">
-          Free cat images
-        </Link>
-
-        <Box>
-          <Text fontSize="md">Vulnerable rendering</Text>
-          {showDiffRenderedElements && (
-            <Box dangerouslySetInnerHTML={{ __html: `${inputValue}` }}></Box>
-          )}
-        </Box>
-
-        <Box>
-          <Text fontSize="md">Secure rendering</Text>
-          {showDiffRenderedElements && <Box>{inputValue}</Box>}
-        </Box>
-
-        <Box>
-          <Text fontSize="md">Secure rendering tags b, i, img</Text>
-          {showDiffRenderedElements && (
-            <Flex flexDir="column" gap={2}>
-              <Box as="b">{inputValue}</Box>
-              <Box as="i">{inputValue}</Box>
-              <Image
-                width={"200px"}
-                height={"auto"}
-                src={inputValue}
-                alt={"image alt text"}
-              ></Image>
-            </Flex>
-          )}
-        </Box>
-      </Flex>
-
-      <StyledModal
-        title="title of the modal"
-        isOpen={isOpen}
-        onClose={() => {
-          setIsOpen((prev) => !prev);
+          }
         }}
-      >
-        <>
-          <Box>Modal content</Box>
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                setIsOpen((prev) => !prev);
+      ></Input>
+      <Flex gap={4}>
+        <Document />
+        <Users />
+      </Flex>
+      <Box>
+        <Text fontSize="md">History</Text>
+        <History />
+      </Box>
 
-                sendMessage(inputValue);
-
-                setShowDiffRenderedElements(true);
-              }
-            }}
-          ></Input>
-        </>
-      </StyledModal>
+      <XssComponent />
     </Box>
   );
 }
 
-export default App;
+function Document() {
+  const { lastJsonMessage } = useWebSocket(webSocketUrl, {
+    share: true,
+    filter: (message) => {
+      return isContentChangeEvent(message) || isUserEvent(message);
+    },
+  });
+
+  const lastJsonMessageTyped = lastJsonMessage as {
+    data?: {
+      editorContentArr: string[];
+      userActivity: string[];
+    };
+  };
+
+  return (
+    <Flex flexDir="row" gap={2}>
+      <Box>
+        <Text fontSize="md">All messages rendered securely:</Text>
+        {lastJsonMessageTyped?.data?.editorContentArr?.map((message, i) => (
+          <Text key={i}>{message}</Text>
+        ))}
+      </Box>
+      <Box>
+        <Text fontSize="md">Vulnerable rendering</Text>
+
+        {lastJsonMessageTyped?.data?.editorContentArr?.map((message, i) => (
+          <Box key={i} dangerouslySetInnerHTML={{ __html: `${message}` }}></Box>
+        ))}
+      </Box>
+    </Flex>
+  );
+}
+
+function Users() {
+  const { lastJsonMessage } = useWebSocket(webSocketUrl, {
+    share: true,
+    filter: isUserEvent,
+  });
+
+  const lastJsonMessageTyped = lastJsonMessage as {
+    data: {
+      users: { [key: string]: { username: string; type: string } };
+      userActivity: string[];
+    };
+  };
+
+  const users = Object.values(lastJsonMessageTyped?.data.users || {});
+  return (
+    <Box>
+      <Text>All users:</Text>
+      {users.map((user, i) => (
+        <Box key={i}>
+          <Text>{user.username}</Text>
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+function History() {
+  const { lastJsonMessage } = useWebSocket(webSocketUrl, {
+    share: true,
+    filter: isUserEvent,
+  });
+
+  const lastJsonMessageTyped = lastJsonMessage as {
+    data: {
+      userActivity: string[];
+    };
+  };
+
+  const activities = lastJsonMessageTyped?.data.userActivity || [];
+  return (
+    <Box>
+      {activities.map((activity, index) => (
+        <Text key={`activity-${index}`}>{activity}</Text>
+      ))}
+    </Box>
+  );
+}
