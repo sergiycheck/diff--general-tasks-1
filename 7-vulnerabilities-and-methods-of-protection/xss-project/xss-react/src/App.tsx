@@ -1,7 +1,20 @@
 import React from "react";
 import { Box, Flex, Input, Text } from "@chakra-ui/react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
-import { XssComponent } from "./components/xss-component";
+import { Link, Outlet } from "react-router-dom";
+
+export default function App() {
+  return (
+    <Box as="header">
+      <Flex gap={3}>
+        <Link to="/">Home</Link>
+        <Link to="xss-vulnerable">Xss vulnerable</Link>
+      </Flex>
+
+      <Outlet />
+    </Box>
+  );
+}
 
 const webSocketUrl = "ws://localhost:8000";
 
@@ -20,7 +33,7 @@ function isContentChangeEvent(message: { data: any }) {
   return evt.type === typesDef.CONTENT_CHANGE;
 }
 
-export default function App() {
+export function ChatComponent() {
   const { readyState, sendJsonMessage } = useWebSocket(webSocketUrl, {
     onOpen: () => {
       console.log("WebSocket connection established.");
@@ -67,8 +80,6 @@ export default function App() {
         <Text fontSize="md">History</Text>
         <History />
       </Box>
-
-      <XssComponent />
     </Box>
   );
 }
