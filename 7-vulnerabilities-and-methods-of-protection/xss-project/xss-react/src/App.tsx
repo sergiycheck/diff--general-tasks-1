@@ -111,7 +111,7 @@ function Document() {
         <Text fontSize="md">Vulnerable rendering</Text>
 
         {lastJsonMessageTyped?.data?.editorContentArr?.map((message, i) => (
-          <Box key={i} dangerouslySetInnerHTML={{ __html: `${message}` }}></Box>
+          <Box key={i} dangerouslySetInnerHTML={{ __html: message }}></Box>
         ))}
       </Box>
     </Flex>

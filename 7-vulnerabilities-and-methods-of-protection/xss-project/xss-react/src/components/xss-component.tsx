@@ -9,6 +9,18 @@ export const XssComponent = () => {
   const [showDiffRenderedElements, setShowDiffRenderedElements] =
     React.useState(false);
 
+  const enterModalHandler = () => {
+    setIsOpen((prev) => !prev);
+
+    setShowDiffRenderedElements(true);
+
+    const vulnerableBox = document.getElementById("vulnerable-box");
+    if (vulnerableBox) {
+      const scriptEl = document.createElement("script");
+      scriptEl.innerHTML = eval(`${inputValue}`);
+    }
+  };
+
   return (
     <>
       <Flex gap={3} flexDir="column">
@@ -28,10 +40,13 @@ export const XssComponent = () => {
         </Link>
 
         <Box>
-          <Text fontSize="md">Vulnerable rendering</Text>
+          <Text fontSize="md">Vulnerable rendering 1</Text>
+
           {showDiffRenderedElements && (
             <Box dangerouslySetInnerHTML={{ __html: `${inputValue}` }}></Box>
           )}
+          <Text fontSize="md">Vulnerable rendering 2</Text>
+          <Box id="vulnerable-box"></Box>
         </Box>
 
         <Box>
@@ -70,9 +85,7 @@ export const XssComponent = () => {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                setIsOpen((prev) => !prev);
-
-                setShowDiffRenderedElements(true);
+                enterModalHandler();
               }
             }}
           ></Input>
