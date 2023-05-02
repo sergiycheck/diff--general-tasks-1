@@ -26,6 +26,8 @@ export const authOptions: NextAuthOptions = {
               password,
             });
 
+            console.log(result);
+
             if (result.rowCount) {
               const user = result.rows[0];
               return user;

