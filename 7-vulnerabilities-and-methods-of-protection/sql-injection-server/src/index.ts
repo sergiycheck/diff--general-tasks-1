@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import cors from "@fastify/cors";
 import {
   UserLogin,
   findByEmailAndPass,
@@ -10,15 +11,17 @@ const fastify = Fastify({
   logger: true,
 });
 
+fastify.register(cors);
+
 fastify.get("/users", async (request, reply) => {
   const result = await getAll();
-  return result.rows;
+  return result;
 });
 
 fastify.post("/users/login", async (request, reply) => {
   const body = request.body as UserLogin;
   const result = await findByEmailAndPass(body);
-  return result.rows;
+  return result;
 });
 
 fastify.post("/users/login-vulnerable", async (request, reply) => {

@@ -28,14 +28,15 @@ export async function getServerSideProps(context: {
   };
 }
 export default function Home(props: { session: Session }) {
-  const { session } = props;
+  let { session } = props;
+  session = session as unknown as any;
 
   return (
     <div className={`flex min-h-screen flex-col items-center justify-between`}>
       <div className="flex flex-col gap-2">
         <h1>Current user</h1>
-        <p>email: {session?.user?.email}</p>
-        <p>role: {session?.user?.role}</p>
+        <p>email: {session?.user[0]?.email}</p>
+        <p>role: {session?.user[0]?.role}</p>
       </div>
     </div>
   );

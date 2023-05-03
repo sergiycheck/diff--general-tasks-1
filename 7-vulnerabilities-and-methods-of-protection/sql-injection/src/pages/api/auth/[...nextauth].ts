@@ -1,6 +1,29 @@
-import { findByEmailAndPass, findByEmailAndPassVulnerable } from "@/lib/users";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import axios from "axios";
+
+const baseUrl = "http://127.0.0.1:3500";
+
+const urls = {
+  users: {
+    name: "users",
+    get login() {
+      return `${baseUrl}/${this.name}/login`;
+    },
+    get login_vulnerable() {
+      return `${baseUrl}/${this.name}/login-vulnerable`;
+    },
+  },
+};
+
+export type User = {
+  id: number;
+  email: string;
+  password: string;
+  role: string;
+};
+
+export type UserLogin = Omit<User, "id" | "role">;
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -21,19 +44,18 @@ export const authOptions: NextAuthOptions = {
           if (credentials) {
             const { email, password } = credentials;
 
-            const result = await findByEmailAndPassVulnerable({
-              email,
-              password,
-            });
+            const result = await axios.post<User[]>(
+              urls.users.login_vulnerable,
+              {
+                email,
+                password,
+              }
+            );
+            const { data } = result;
 
-            console.log(result);
-
-            if (result.rowCount) {
-              const user = result.rows[0];
-              return user;
+            if (data) {
+              return data;
             }
-
-            return null;
           }
 
           return null;

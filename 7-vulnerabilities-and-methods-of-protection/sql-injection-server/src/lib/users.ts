@@ -11,23 +11,34 @@ export type UserLogin = Omit<User, "id" | "role">;
 
 client.connect();
 
+function resultReturner(res: any | any[]) {
+  if (Array.isArray(res)) {
+    const multiDimentionalRows = res.map((entry) => {
+      return entry.rows;
+    });
+
+    return Array.prototype.concat.apply([], multiDimentionalRows);
+  }
+
+  return res.rows;
+}
+
 export async function getAll() {
-  return await client.query("select * from users");
+  const res = await client.query("select * from users");
+  return resultReturner(res);
 }
 
 export async function findByEmailAndPass(dto: UserLogin) {
   const sqlQuery = `select * from users where email = $1 and password = $2`;
   const parameters = [...Object.values(dto)];
   const res = await client.query(sqlQuery, parameters);
-  return res;
+  return resultReturner(res);
 }
 
 export async function findByEmailAndPassVulnerable(dto: UserLogin) {
   const query = `select * from users where email = '${dto.email}' and password = '${dto.password}';`;
-  console.log("query", query);
   const res = await client.query(query);
-
-  return res;
+  return resultReturner(res);
 }
 
 export async function create(user: UserLogin) {
