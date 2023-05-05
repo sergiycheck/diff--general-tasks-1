@@ -30,6 +30,14 @@ fastify.post("/users/login-vulnerable", async (request, reply) => {
   return result;
 });
 
+fastify.get("/longer", async (request, reply) => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({message: 'longer response'})
+    }, 10_000)
+  })
+});
+
 fastify.get("/", async (request, reply) => {
   return { hello: "world" };
 });

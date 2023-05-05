@@ -2,6 +2,9 @@
 
 GET http://{{host}}
 
+### longer response
+GET http://{{host}}/longer
+
 
 #### get all users
 GET http://{{host}}/users
