@@ -1,0 +1,24 @@
+{
+  "name": "dns-resolver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start-with-logs-turbowatch": "ROARR_LOG=true turbowatch ./turbowatch.ts | roarr",
+    "start-turbowatch": "turbowatch ./turbowatch.ts",
+    "start-tsc-watch": "tsc-watch --onSuccess 'node ./dist/index.js'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@roarr/cli": "^5.12.2",
+    "lru-cache": "^9.1.1",
+    "turbowatch": "^2.21.0",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.1.2",
+    "tsc-watch": "^6.0.4"
+  }
+}
