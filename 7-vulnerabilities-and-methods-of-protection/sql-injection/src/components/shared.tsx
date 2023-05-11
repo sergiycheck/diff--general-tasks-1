@@ -2,7 +2,10 @@ import React from "react";
 
 export const Button1 = React.forwardRef(
   (
-    props: undefined | { children: JSX.Element | string },
+    props:
+      | undefined
+      | { children: JSX.Element | string }
+      | React.ButtonHTMLAttributes<HTMLButtonElement>,
     ref: React.Ref<HTMLButtonElement> | null
   ) => {
     let children,
